@@ -1,0 +1,1 @@
+cd && sudo ln -s /var/www/ sites
