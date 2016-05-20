@@ -1,1 +1,1 @@
-sudo ln -s $1/server/vendor/phpunit/phpunit/phpunit /usr/bin/phpunit
+sudo ln -s $1/vendor/phpunit/phpunit/phpunit /usr/bin/phpunit

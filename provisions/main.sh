@@ -1,10 +1,16 @@
 #friendly up passed vars
-HOST=$2
-APP_ROOT=$3
-CLIENT_ROOT=$4
 MYSQL_PASSWORD="vagrant"
+
+IP=$1
+HOST=$2
+SERVER_DIR=$3
+CLIENT_DIR=$4
+
 DOC_ROOT="/var/www/$HOST"
-APP_CONFIG_PATH="$DOC_ROOT/$APP_ROOT/config"
+VAGRANT_ROOT="$DOC_ROOT/vagrant"
+SERVER_ROOT=$([ "$SERVER_DIR" == '' ] && echo "$DOC_ROOT" || echo "$DOC_ROOT/$SERVER_DIR")
+CLIENT_ROOT=$([ "$CLIENT_DIR" == '' ] && echo "$DOC_ROOT" || echo "$DOC_ROOT/$CLIENT_DIR")
+
 
 #Prevent debconf from having to look for stdin
 export DEBIAN_FRONTEND=noninteractive
@@ -62,44 +68,42 @@ sudo apt-add-repository -y ppa:git-core/ppa
 sudo apt-get -y update
 sudo apt-get -y install git
 
-# install node.js
-curl -sL https://deb.nodesource.com/setup | sudo bash -
-sudo apt-get -y install nodejs
+if [ "$CLIENT_DIR" != '' ]; then
+	# install node.js
+	curl -sL https://deb.nodesource.com/setup | sudo bash -
+	sudo apt-get -y install nodejs
 
-# install latest npm
-sudo npm -g install npm@latest
+	# install latest npm
+	sudo npm -g install npm@latest
 
-# install grunty-grunt
-sudo npm install -g grunt-cli
+	# install grunty-grunt
+	sudo npm install -g grunt-cli
 
-# install grunt & bower
-sudo npm install -g bower
+	# install grunt & bower
+	sudo npm install -g bower
 
-# yo scaffolding tool
-# sudo npm install -g yo
-# sudo npm install -g generator-angular
+	# yo scaffolding tool
+	# sudo npm install -g yo
+	# sudo npm install -g generator-angular
 
-# ruby and some other shiz
-sudo apt-get -y install ruby-dev libsqlite3-dev
+	# ruby and some other shiz
+	sudo apt-get -y install ruby-dev libsqlite3-dev
 
-# Install Mailcatcher and run it on port 1080
-# sudo gem install mailcatcher
-# mailcatcher --http-ip=0.0.0.0
-
-# libsass is used for sass processing... which is part of the npm install
-# sudo gem install compass
+	# libsass is used for sass processing... which is part of the npm install
+	# sudo gem install compass
+fi
 
 # VHOST CONFIG
 # setup hosts file
 VHOST=$(cat <<EOF
-<Directory $DOC_ROOT/$APP_ROOT>
+<Directory $SERVER_ROOT>
     AllowOverride All
     Order Allow,Deny
     Allow from All
 </Directory>
 <VirtualHost *:80>
     ServerName $HOST
-    DocumentRoot $DOC_ROOT/$APP_ROOT
+    DocumentRoot $SERVER_ROOT
 </VirtualHost>
 EOF
 )
@@ -112,13 +116,23 @@ sudo a2ensite $HOST.conf
 sudo service apache2 reload
 
 # COMPOSER PACKAGE INSTALL
-sudo ./scripts/install-composer.sh
 
-# COMPOSER DEPENDENCIES INSTALL
-cd $DOC_ROOT/server
-composer install
+if [ -e "$SERVER_ROOT/composer.json" ]; then
+	cd $VAGRANT_ROOT/provisions
+	sudo ./scripts/install-composer.sh
 
-cd $DOC_ROOT/vagrant/provisions
-sudo ./scripts/symlink-phpunit.sh $DOC_ROOT
+	# COMPOSER DEPENDENCIES INSTALL
+	cd $SERVER_ROOT
+	composer install
+fi
 
-sudo ./config.sh
+
+if [ -d "$SERVER_ROOT/vendor/phpunit" ]; then
+	cd $VAGRANT_ROOT/provisions
+	sudo ./scripts/symlink-phpunit.sh $SERVER_ROOT
+fi
+
+if [ -e "$VAGRANT_ROOT/provisions/config.sh" ]; then
+	cd $VAGRANT_ROOT/provisions
+	sudo ./config.sh
+fi

@@ -1,6 +1,14 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+#READ LOCAL VAGRANT CONFIG
+if File.exists?('config.rb') then
+	localconfig = File.read 'config.rb'
+	eval localconfig
+else
+	puts "Local config file not found. Please copy config.rb.sample to config.rb, change the variables, and try again."
+end
+
 #INSTALL PLUGINS
 required_plugins = %w( vagrant-hostmanager )
 required_plugins.each do |plugin|
@@ -17,10 +25,6 @@ Vagrant.configure(2) do |config|
   config.vm.network "private_network", ip: LOCAL_ARGS["guest_ip"]
   config.ssh.forward_agent = true
 
-  # Forward any ports necessary.
-  config.vm.network "forwarded_port", guest: 9001, host: 9001
-  config.vm.network "forwarded_port", guest: 35729, host: 35729
-
   #SYNC
   config.vm.synced_folder "../", "/var/www/" + LOCAL_ARGS["guest_hostname"], type: "nfs", mount_options: ['actimeo=1']
 
@@ -32,16 +36,11 @@ Vagrant.configure(2) do |config|
   #PROVIDER (AKA VM)
   config.ssh.forward_agent = true
   config.vm.provider "virtualbox" do |v|
+	v.name = LOCAL_ARGS["guest_hostname"]
     v.memory = 2048
     v.cpus = 2
   end
 
   #BOOTSTRAP
-  config.vm.provision :shell, path: "provisions/main.sh", :args => [LOCAL_ARGS["guest_ip"], LOCAL_ARGS["guest_hostname"], LOCAL_ARGS["app_root"], LOCAL_ARGS["client_root"]]
-end
-
-#LOCAL VAGRANT CONFIG
-if File.exists?('config.rb') then
-	localconfig = File.read 'config.rb'
-	eval localconfig
+  config.vm.provision :shell, path: "provisions/main.sh", :args => [LOCAL_ARGS["guest_ip"], LOCAL_ARGS["guest_hostname"], LOCAL_ARGS["server_dir"], LOCAL_ARGS["client_dir"]]
 end
