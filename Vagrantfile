@@ -25,6 +25,10 @@ Vagrant.configure(2) do |config|
   config.vm.network "private_network", ip: LOCAL_ARGS["guest_ip"]
   config.ssh.forward_agent = true
 
+  #Forward any ports necessary.
+  config.vm.network "forwarded_port", guest: 9001, host: 9001
+  config.vm.network "forwarded_port", guest: 35729, host: 35729
+
   #SYNC
   config.vm.synced_folder "../", "/var/www/" + LOCAL_ARGS["guest_hostname"], type: "nfs", mount_options: ['actimeo=1']
 
