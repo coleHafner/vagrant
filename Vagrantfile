@@ -26,8 +26,7 @@ Vagrant.configure(2) do |config|
   config.ssh.forward_agent = true
 
   #Forward any ports necessary.
-  config.vm.network "forwarded_port", guest: 9001, host: 9001
-  config.vm.network "forwarded_port", guest: 35729, host: 35729
+  config.vm.network "forwarded_port", guest: 8000, host: 8000
 
   #SYNC
   config.vm.synced_folder "../", "/var/www/" + LOCAL_ARGS["guest_hostname"], type: "nfs", mount_options: ['actimeo=1']

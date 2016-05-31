@@ -17,7 +17,6 @@ sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again p
 
 # install curl
 sudo apt-get install -y curl
-sudo apt-get install -y php5-curl
 
 #install server utils
 sudo apt-get install -y vim
@@ -35,17 +34,14 @@ sudo apt-get -y install nodejs
 # install latest npm
 sudo npm -g install npm@latest
 
-# install grunty-grunt
+# install grunty-mc-grunt-face
 sudo npm install -g grunt-cli
-
-# install grunt & bower
-sudo npm install -g bower
 
 #disable stupid progress bar
 sudo npm config set progress false --global
 
-#bower install
-cd $DOC_ROOT && npm install && bower install
+#npm install
+cd $DOC_ROOT && npm install
 
 if [ -e "$VAGRANT_ROOT/provisions/config.sh" ]; then
 	cd $VAGRANT_ROOT/provisions
